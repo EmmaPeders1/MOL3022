@@ -49,13 +49,19 @@ fasta_file = "uniprot_fasta/uniprot_sprot.fasta"
 print("Reading fasta file:", fasta_file, "please wait...")
 sequences = read_fasta(fasta_file)
 print("Number of Sequences:", len(sequences), "\n")
+
+# Check if number of sequences is greater than 50k
 if len(sequences) > 50000:
     print('\x1b[1;31;40m' + "WARNING: More than 50k sequences! Recommended to use a subset for testing." + '\x1b[0m') # With all 500k sequences, the program can take several minutes to run
+    # give user option to use first 50 sequences
     if input("Use first 50 sequences? (y/n): ").lower() == "y":
         sequences = {k: sequences[k] for k in list(sequences)[:50]}
 print(len(sequences), "sequences will be used for alignment.")
+
+# Give user option to enter query sequence
 if input("Do you wish to input your own query sequence? (y/n):").lower() == "y":
     query_sequence = input("Enter query sequence: ")
+# use default query sequence if user does not wish to input their own
 else:
     print("Using default query sequence: REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM")
     query_sequence = "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM"
