@@ -15,19 +15,17 @@ def read_fasta(filename):
 
 def find_closest_alignment(sequences, query_sequence):
     # Find closest alingment to query sequence using globalxx alignment
-    # TODO: Choose correct alignment in list of alignment objects
+    # TODO: find alignment witg highest score takes ages, so needs to be fixed (broken)
     
     #stores aligment parameters
     aligner = Align.PairwiseAligner()
 
-    best_alignment = None
+    best_alignment = []
     best_score = float("-inf")
     print("Finding best alignment, please wait...")
 
+    #find highest score
     for identifier, sequence in sequences.items():
-       #alignments = pairwise2.align.globalxx(query_sequence, sequence, one_alignment_only=True)
-        #alignment = alignments[0]
-        #score = alignment[2]
 
         #calculte the alignment score
         score = aligner.score(sequence, query_sequence)
@@ -35,13 +33,18 @@ def find_closest_alignment(sequences, query_sequence):
 
         if score > best_score:
             best_score = score
-            best_alignment = aligner.align(sequence, query_sequence)[0] #Alignment objects represtenting alignments between sequens and query
 
-       # if score > best_score:
-           # best_score = score
-           # best_alignment = (identifier, sequence, alignment)
-    result = [best_alignment, best_score]
+    #find alignment with highest score
+    for identifier, sequence in sequences.items():    
+        alignments = aligner.align(sequence, query_sequence) #Alignment objects represtenting alignments between sequence and query
 
+        for x in range(len(alignments)):
+            if alignments[x].score == best_score:
+                best_alignment.append(alignments[x].score)
+    
+
+       
+    result = [len(best_alignment), best_score]
     return result
 # Main
 print("\n SVE Alignment Tool\n---------------------\n")
@@ -71,9 +74,8 @@ resultList = find_closest_alignment(sequences, query_sequence)
 
 print("Best Alignment:")
 #print("Identifier:", best_alignment[0])
-for resultAlign in resultList[0]:
-    print("Sequence:")
-    print(resultAlign)
+print("Sequence:")
+print(resultList[0])
 
 print("Alignment Score:", resultList[1])
 #print("Alignment:")
