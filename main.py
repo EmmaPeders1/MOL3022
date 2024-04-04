@@ -54,7 +54,12 @@ if len(sequences) > 50000:
     if input("Use first 50 sequences? (y/n): ").lower() == "y":
         sequences = {k: sequences[k] for k in list(sequences)[:50]}
 print(len(sequences), "sequences will be used for alignment.")
-query_sequence = "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM" # Example query sequence, can be replaced with input from user
+if input("Do you wish to input your own query sequence? (y/n):").lower() == "y":
+    query_sequence = input("Enter query sequence: ")
+else:
+    print("Using default query sequence: REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM")
+    query_sequence = "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM"
+
 resultList = find_closest_alignment(sequences, query_sequence)
 
 
