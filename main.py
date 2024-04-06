@@ -28,11 +28,7 @@ def find_closest_alignment(sequences, query_sequence):
 
     # Stores aligment parameters
     aligner = Align.PairwiseAligner()
-    aligner.mode = 'global'
-    aligner.match_score = 2
-    aligner.mismatch_score = -2
-    aligner.open_gap_score = -0.5
-    aligner.extend_gap_score = -0.1
+    aligner.substitution_matrix = Align.substitution_matrices.load("BLOSUM62")
 
     best_alignment = []
     best_score = float("-inf")
@@ -48,22 +44,26 @@ def find_closest_alignment(sequences, query_sequence):
     for identifier, sequence in sequences.items():
         try:
             alignments = aligner.align(sequence, query_sequence) #Alignment objects represtenting alignments between sequence and query
-        except OverflowError: # Skip if too many alignments (can either be because of completely incompatible sequence or too long sequence)
+        except Exception as e: # If the alignment score is too high, it will cause an overflow error, so we throw it away and continue
+            st.error(f"Error: {e}")
             continue
+            
         # Create for-loop counter and show progress
         counter += 1
         progress_bar.progress(counter / len(sequences), text=progress_text)
         
-        
-        if 0 < len(alignments) < alignment_cap: 
-            for x in range(len(alignments)):
-                if alignments[x].score >= best_score:
-                    if alignments[x].score > best_score:
-                        best_score = alignments[x].score
-                        best_alignment = []
-                    best_alignment.append(alignments[x])
-                    # Only keep one best alignment from each sequence
-                    break
+        try:
+            if 0 < len(alignments) < alignment_cap: 
+                for x in range(len(alignments)):
+                    if alignments[x].score >= best_score:
+                        if alignments[x].score > best_score:
+                            best_score = alignments[x].score
+                            best_alignment = []
+                        best_alignment.append(alignments[x])
+                        # Only keep one best alignment from each sequence
+                        break
+        except: # If the length of the alignments is too high, it will cause an overflow error, but that also indicates that the alignment is not useful, so we throw it away and continue
+            continue
     
     # Remove progress bar and show completion
     progress_bar.empty()
