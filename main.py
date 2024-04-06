@@ -1,82 +1,113 @@
 from Bio import SeqIO
-from Bio import pairwise2
 from Bio import Align
+import streamlit as st
 
 # SVE (Solveig, Vebjørn and Emma) Alignment Tool
 # This tool is designed to find the closest alignment to a query sequence in a fasta file
 # Use pip install -r requirements.txt to install required packages
 
+# Maximum number of sequences to align
+sequence_cap = 10000
+
+# Maximum number of alignments for each sequence
+alignment_cap = 50000
+
+# Set page config
+st.set_page_config(layout="wide")
+
 def read_fasta(filename):
     # Read fasta file and return dict of sequences
+    
     sequences = {}
     for record in SeqIO.parse(filename, "fasta"):
-        sequences[record.id] = str(record.seq)
+        sequences[record.
+        id] = str(record.seq)
     return sequences
 
 def find_closest_alignment(sequences, query_sequence):
-    # Find closest alingment to query sequence using globalxx alignment
-    # TODO: find alignment witg highest score takes ages, so needs to be fixed (broken)
-    
-    #stores aligment parameters
+    # Find the closest alignment to the query sequence in the sequences
+
+    # Stores aligment parameters
     aligner = Align.PairwiseAligner()
+    aligner.mode = 'global'
+    aligner.match_score = 2
+    aligner.mismatch_score = -2
+    aligner.open_gap_score = -0.5
+    aligner.extend_gap_score = -0.1
 
     best_alignment = []
     best_score = float("-inf")
     print("Finding best alignment, please wait...")
 
-    #find highest score
+    # Find alignment with highest score
+    counter = 0
+
+    # Progress bar
+    progress_text = "Finding best alignment. Please wait..."
+    progress_bar = st.progress(0, text=progress_text)
+
     for identifier, sequence in sequences.items():
-
-        #calculte the alignment score
-        score = aligner.score(sequence, query_sequence)
-
-
-        if score > best_score:
-            best_score = score
-
-    #find alignment with highest score
-    for identifier, sequence in sequences.items():    
-        alignments = aligner.align(sequence, query_sequence) #Alignment objects represtenting alignments between sequence and query
-
-        for x in range(len(alignments)):
-            if alignments[x].score == best_score:
-                best_alignment.append(alignments[x].score)
+        try:
+            alignments = aligner.align(sequence, query_sequence) #Alignment objects represtenting alignments between sequence and query
+        except OverflowError: # Skip if too many alignments (can either be because of completely incompatible sequence or too long sequence)
+            continue
+        # Create for-loop counter and show progress
+        counter += 1
+        progress_bar.progress(counter / len(sequences), text=progress_text)
+        
+        
+        if 0 < len(alignments) < alignment_cap: 
+            for x in range(len(alignments)):
+                if alignments[x].score >= best_score:
+                    if alignments[x].score > best_score:
+                        best_score = alignments[x].score
+                        best_alignment = []
+                    best_alignment.append(alignments[x])
+                    # Only keep one best alignment from each sequence
+                    break
     
+    # Remove progress bar and show completion
+    progress_bar.empty()
+    st.balloons()
 
-       
-    result = [len(best_alignment), best_score]
+    st.markdown("Alignment complete!")
+    result = [best_alignment, best_score]
     return result
-# Main
-print("\n SVE Alignment Tool\n---------------------\n")
-fasta_file = "uniprot_fasta/uniprot_sprot.fasta"
-print("Reading fasta file:", fasta_file, "please wait...")
-sequences = read_fasta(fasta_file)
-print("Number of Sequences:", len(sequences), "\n")
 
-# Check if number of sequences is greater than 50k
-if len(sequences) > 50000:
-    print('\x1b[1;31;40m' + "WARNING: More than 50k sequences! Recommended to use a subset for testing." + '\x1b[0m') # With all 500k sequences, the program can take several minutes to run
-    # give user option to use first 50 sequences
-    if input("Use first 50 sequences? (y/n): ").lower() == "y":
-        sequences = {k: sequences[k] for k in list(sequences)[:50]}
-print(len(sequences), "sequences will be used for alignment.")
+if __name__ == "__main__":
+    st.header("SVE Alignment Tool :rocket:")
+    st.markdown("This is an alignment tool designed to find the closest alignment to a query sequence in a fasta file")
+    fasta_file = "uniprot_fasta/uniprot_sprot.fasta"
+    st.markdown("Reading fasta file: " + fasta_file)
+    sequences = read_fasta(fasta_file)
+    seq_amount = len(sequences)
+    st.markdown("Number of Sequences: " + str(seq_amount))
 
-# Give user option to enter query sequence
-if input("Do you wish to input your own query sequence? (y/n):").lower() == "y":
-    query_sequence = input("Enter query sequence: ")
-# use default query sequence if user does not wish to input their own
-else:
-    print("Using default query sequence: REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM")
-    query_sequence = "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM"
+    # Spacing 
+    st.text("")
 
-resultList = find_closest_alignment(sequences, query_sequence)
+    # Give user option to use a subset of sequences if there are more than 50k sequences
+    if seq_amount > sequence_cap:
+        st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can take several minutes to run
+        # Give user option to use their chosen amount of sequences
+        seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 500)
+        sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
+    st.markdown(str(seq_slider) + " sequences will be used for alignment.")    
 
+    # Spacing 
+    st.text("")
 
-print("Best Alignment:")
-#print("Identifier:", best_alignment[0])
-print("Sequence:")
-print(resultList[0])
-
-print("Alignment Score:", resultList[1])
-#print("Alignment:")
-#print(pairwise2.format_alignment(*best_alignment[2]))
+    # Give user option to enter query sequence
+    user_sequence = st.text_input("Enter query sequence (or use the default sequence in place): ", "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM")
+    
+    # Start alignment
+    if st.button("Find Closest Alignment", type="primary"):
+        resultList = find_closest_alignment(sequences, user_sequence)
+        len_result = len(resultList[0])
+        st.markdown(f"{len_result} alignment(s) found with score: {str(resultList[1])}")
+        
+        # Show results
+        st.subheader("Best Alignment(s):")
+        for i in range(len(resultList[0])):
+            st.markdown("Alignment " + str(i+1))
+            st.code(str(resultList[0][i]))
