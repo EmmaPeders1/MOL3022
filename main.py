@@ -20,8 +20,7 @@ def read_fasta(filename):
     
     sequences = {}
     for record in SeqIO.parse(filename, "fasta"):
-        sequences[record.
-        id] = str(record.seq)
+        sequences[record.id] = str(record.seq)
     return sequences
 
 def find_closest_alignment(sequences, query_sequence):
@@ -75,8 +74,8 @@ def find_closest_alignment(sequences, query_sequence):
     return result
 
 if __name__ == "__main__":
-    st.header("SVE Alignment Tool :rocket:")
-    st.markdown("This is an alignment tool designed to find the closest alignment to a query sequence in a fasta file")
+    st.header("SVE Protein Alignment Tool :rocket:")
+    st.markdown("This is an alignment tool that finds the closest protein alignments in a fasta file     to a given query sequence")
     fasta_file = "uniprot_fasta/uniprot_sprot.fasta"
     st.markdown("Reading fasta file: " + fasta_file)
     sequences = read_fasta(fasta_file)
@@ -88,7 +87,7 @@ if __name__ == "__main__":
 
     # Give user option to use a subset of sequences if there are more than 50k sequences
     if seq_amount > sequence_cap:
-        st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can take several minutes to run
+        st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can a long time to run
         # Give user option to use their chosen amount of sequences
         seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 500)
         sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
