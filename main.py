@@ -69,18 +69,18 @@ def find_closest_alignment(sequences, query_sequence):
     progress_bar.empty()
     st.balloons()
 
-    st.markdown("Alignment complete!")
+    st.markdown(":blue[Alignment complete!]")
     result = [best_alignment, best_score]
     return result
 
 if __name__ == "__main__":
     st.header("SVE Protein Alignment Tool :rocket:")
-    st.markdown("This is an alignment tool that finds the closest protein alignments in a fasta file     to a given query sequence")
+    st.markdown("*This is an alignment tool that finds the closest protein alignments in a fasta file to a given query sequence*")
     fasta_file = "uniprot_fasta/uniprot_sprot.fasta"
-    st.markdown("Reading fasta file: " + fasta_file)
+    st.markdown(":blue[Reading fasta file: " + fasta_file + "]")
     sequences = read_fasta(fasta_file)
     seq_amount = len(sequences)
-    st.markdown("Number of Sequences: " + str(seq_amount))
+    st.markdown("**Number of Sequences:** " + str(seq_amount))
 
     # Spacing 
     st.text("")
@@ -89,9 +89,9 @@ if __name__ == "__main__":
     if seq_amount > sequence_cap:
         st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can a long time to run
         # Give user option to use their chosen amount of sequences
-        seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 500)
+        seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 50)
         sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
-    st.markdown(str(seq_slider) + " sequences will be used for alignment.")    
+    st.markdown("**" + str(seq_slider) + " sequences will be used for alignment.**")    
 
     # Spacing 
     st.text("")
@@ -103,10 +103,10 @@ if __name__ == "__main__":
     if st.button("Find Closest Alignment", type="primary"):
         resultList = find_closest_alignment(sequences, user_sequence)
         len_result = len(resultList[0])
-        st.markdown(f"{len_result} alignment(s) found with score: {str(resultList[1])}")
+        st.markdown(f"**{len_result} alignment(s) found with score: {str(resultList[1])}**")
         
         # Show results
         st.subheader("Best Alignment(s):")
         for i in range(len(resultList[0])):
-            st.markdown("Alignment " + str(i+1))
+            st.markdown("**Alignment " + str(i+1) + "**")
             st.code(str(resultList[0][i]))
