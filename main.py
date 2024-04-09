@@ -1,18 +1,25 @@
 from Bio import SeqIO
 from Bio import pairwise2
 from Bio import Align
+import re
 
 # SVE (Solveig, Vebjørn and Emma) Alignment Tool
 # This tool is designed to find the closest alignment to a query sequence in a fasta file
 # Use pip install -r requirements.txt to install required packages
 
 sequence_cap = 10000
+pattern = r'OS=(.*?)\sOX='
 
 def read_fasta(filename):
     # Read fasta file and return dict of sequences
     sequences = {}
     for record in SeqIO.parse(filename, "fasta"):
-        sequences[record.id] = str(record.seq)
+        match = re.search(pattern, record.description)
+        if match:
+            sequences[record.id] = [str(record.seq), match.group(1)]
+        else:
+            sequences[record.id] = [str(record.seq), record.description]
+        
     return sequences
 
 def find_closest_alignment(sequences, query_sequence):
@@ -26,7 +33,7 @@ def find_closest_alignment(sequences, query_sequence):
     aligner.mismatch_score = -2
     aligner.open_gap_score = -0.5
     aligner.extend_gap_score = -0.1
-
+    
 
     best_alignment = []
     best_score = float("-inf")
@@ -38,7 +45,7 @@ def find_closest_alignment(sequences, query_sequence):
     counter = 0
     for identifier, sequence in sequences.items():
         try:
-            alignments = aligner.align(sequence, query_sequence) #Alignment objects represtenting alignments between sequence and query
+            alignments = aligner.align(sequence[0], query_sequence) #Alignment objects represtenting alignments between sequence and query
         except OverflowError: # Skip if alignment is too long
             continue
         # Create for loop counter and print
@@ -53,6 +60,8 @@ def find_closest_alignment(sequences, query_sequence):
                         best_score = alignments[x].score
                         best_alignment = []
                     best_alignment.append(alignments[x])
+                    print(alignments[x])
+                    print(sequence[1])
                     # Only keep one best alignment from each sequence
                     break
         
@@ -86,3 +95,5 @@ print("Best alignment sequence ")
 print(resultList[0][0][0])
 
 print("Alignment Score:", resultList[1])
+
+
