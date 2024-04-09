@@ -1,6 +1,7 @@
 from Bio import SeqIO
 from Bio import Align
 import streamlit as st
+import re
 
 # SVE (Solveig, Vebjørn and Emma) Alignment Tool
 # This tool is designed to find the closest alignment to a query sequence in a fasta file
@@ -12,6 +13,9 @@ sequence_cap = 10000
 # Maximum number of alignments for each sequence
 alignment_cap = 50000
 
+# Regex pattern to find sequence name in description
+pattern = r'OS=(.*?)\sOX='
+
 # Set page config
 st.set_page_config(layout="wide")
 
@@ -20,7 +24,11 @@ def read_fasta(filename):
     
     sequences = {}
     for record in SeqIO.parse(filename, "fasta"):
-        sequences[record.id] = str(record.seq)
+        match = re.search(pattern, record.description)
+        if match:
+            sequences[record.id] = [str(record.seq), match.group(1)]
+        else:
+            sequences[record.id] = [str(record.seq), record.description]
     return sequences
 
 def find_closest_alignment(sequences, query_sequence):
@@ -43,9 +51,9 @@ def find_closest_alignment(sequences, query_sequence):
 
     for identifier, sequence in sequences.items():
         try:
-            alignments = aligner.align(sequence, query_sequence) #Alignment objects represtenting alignments between sequence and query
-        except Exception as e: # If the alignment score is too high, it will cause an overflow error, so we throw it away and continue
-            st.error(f"Error: {e}")
+            # Use sequence[0] as sequence[1] is the name
+            alignments = aligner.align(sequence[0], query_sequence) #Alignment objects represtenting alignments between sequence and query.
+        except: # If the alignment score is too high, it will cause an overflow error, so we throw it away and continue
             continue
             
         # Create for-loop counter and show progress
@@ -108,5 +116,5 @@ if __name__ == "__main__":
         # Show results
         st.subheader("Best Alignment(s):")
         for i in range(len(resultList[0])):
-            st.markdown("**Alignment " + str(i+1) + "**")
+            st.markdown(f"{sequences[list(sequences.keys())[i]][1]} - {list(sequences.keys())[i]}")
             st.code(str(resultList[0][i]))
