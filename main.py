@@ -64,13 +64,15 @@ def find_closest_alignment(sequences, query_sequence):
         
         try:
             
-            if 0 < len(alignments) < alignment_cap:                
+            if 0 < len(alignments) < alignment_cap:
+                best_alignment_one_sequence = None                
                 for alignment in alignments:
                     if alignment.score > best_score:
                         best_score = alignment.score
                         best_alignment_one_sequence = alignment
                         
-                best_alignment_all.append(best_alignment_one_sequence)
+                if best_alignment_one_sequence:
+                    best_alignment_all.append(best_alignment_one_sequence)
         except: # If the length of the alignments is too high, it will cause an overflow error, but that also indicates that the alignment is not useful, so we throw it away and continue
             continue
     
