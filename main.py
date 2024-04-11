@@ -39,7 +39,7 @@ def find_closest_alignment(sequences, query_sequence):
     aligner = Align.PairwiseAligner()
     aligner.substitution_matrix = Align.substitution_matrices.load("BLOSUM62")
 
-    best_alignment_all = []
+    best_alignments = []
     best_score = float("-inf")
     print("Finding best alignment, please wait...")
 
@@ -65,14 +65,14 @@ def find_closest_alignment(sequences, query_sequence):
         try:
             
             if 0 < len(alignments) < alignment_cap:
-                best_alignment_one_sequence = None                
+                best_alignment = None                
                 for alignment in alignments:
                     if alignment.score > best_score:
                         best_score = alignment.score
-                        best_alignment_one_sequence = alignment
+                        best_alignment = alignment
                         
-                if best_alignment_one_sequence:
-                    best_alignment_all.append(best_alignment_one_sequence)
+                if best_alignment:
+                    best_alignments.append(best_alignment)
         except: # If the length of the alignments is too high, it will cause an overflow error, but that also indicates that the alignment is not useful, so we throw it away and continue
             continue
     
@@ -81,7 +81,7 @@ def find_closest_alignment(sequences, query_sequence):
     st.balloons()
 
     st.markdown(":blue[Alignment complete!]")
-    result = [best_alignment_all, best_score]
+    result = [best_alignments, best_score]
     return result
 
 if __name__ == "__main__":
