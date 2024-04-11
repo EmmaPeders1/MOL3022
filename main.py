@@ -100,7 +100,7 @@ if __name__ == "__main__":
         st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can a long time to run
         # Give user option to use their chosen amount of sequences
         seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 50)
-        sequences = {k: sequences[k] for k in list(sequences)[:seq_amount]}
+        sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
     st.markdown("**" + str(seq_slider) + " sequences will be used for alignment.**")    
 
     # Spacing 
