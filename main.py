@@ -2,6 +2,7 @@ from Bio import SeqIO
 from Bio import Align
 import streamlit as st
 import re
+import numpy as np
 
 # SVE (Solveig, Vebjørn and Emma) Alignment Tool
 # This tool is designed to find the closest alignment to a query sequence in a fasta file
@@ -38,7 +39,7 @@ def find_closest_alignment(sequences, query_sequence):
     aligner = Align.PairwiseAligner()
     aligner.substitution_matrix = Align.substitution_matrices.load("BLOSUM62")
 
-    best_alignment = []
+    best_alignment_all = []
     best_score = float("-inf")
     print("Finding best alignment, please wait...")
 
@@ -50,6 +51,7 @@ def find_closest_alignment(sequences, query_sequence):
     progress_bar = st.progress(0, text=progress_text)
 
     for identifier, sequence in sequences.items():
+       
         try:
             # Use sequence[0] as sequence[1] is the name
             alignments = aligner.align(sequence[0], query_sequence) #Alignment objects represtenting alignments between sequence and query.
@@ -61,15 +63,15 @@ def find_closest_alignment(sequences, query_sequence):
         progress_bar.progress(counter / len(sequences), text=progress_text)
         
         try:
+            
             if 0 < len(alignments) < alignment_cap: 
-                for x in range(len(alignments)):
-                    if alignments[x].score >= best_score:
-                        if alignments[x].score > best_score:
-                            best_score = alignments[x].score
-                            best_alignment = []
-                        best_alignment.append(alignments[x])
-                        # Only keep one best alignment from each sequence
-                        break
+                print(len(alignments))                
+                for alignment in alignments:
+                    if alignment.score > best_score:
+                        best_score = alignment.score
+                        best_alignment_one_sequence = alignment
+                        
+                best_alignment_all.append(best_alignment_one_sequence)
         except: # If the length of the alignments is too high, it will cause an overflow error, but that also indicates that the alignment is not useful, so we throw it away and continue
             continue
     
@@ -78,7 +80,7 @@ def find_closest_alignment(sequences, query_sequence):
     st.balloons()
 
     st.markdown(":blue[Alignment complete!]")
-    result = [best_alignment, best_score]
+    result = [best_alignment_all, best_score]
     return result
 
 if __name__ == "__main__":
@@ -98,14 +100,14 @@ if __name__ == "__main__":
         st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can a long time to run
         # Give user option to use their chosen amount of sequences
         seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 50)
-        sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
+        sequences = {k: sequences[k] for k in list(sequences)[:seq_amount]}
     st.markdown("**" + str(seq_slider) + " sequences will be used for alignment.**")    
 
     # Spacing 
     st.text("")
 
     # Give user option to enter query sequence
-    user_sequence = st.text_input("Enter query sequence (or use the default sequence in place): ", "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM")
+    user_sequence = st.text_input("Enter query sequence (or use the default sequence in place): ", "MAFSAEDVLKEYDRRRRMEALLLSLYYPNDRKLLDYKEWSPPRVQVECPKAPVEWNNPPEKGLIVGHFSGIKYKGEKAQASEVDVNKMCCWVSKFKDAMRRYQGIQTCKIPGKVLSDLDAKIKAYNLTVEGVEGFVRYSRVTKQHVAAFLKELRHSKQYENVNLIHYILTDKRVDIQHLEKDLVKDFKALVESAHRMRQGHMINVKYILYQLLKKHGHGPDGPDILTVKTGSKGVLYDDSFRKIYTDLGWKFTP")
     
     # Start alignment
     if st.button("Find Closest Alignment", type="primary"):
