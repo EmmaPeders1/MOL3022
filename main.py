@@ -38,6 +38,7 @@ def find_closest_alignment(sequences, query_sequence):
     # Stores aligment parameters
     aligner = Align.PairwiseAligner()
     aligner.substitution_matrix = Align.substitution_matrices.load("BLOSUM62")
+    aligner.mode="local"
 
     best_alignments = []
     best_score = float("-inf")
@@ -67,9 +68,12 @@ def find_closest_alignment(sequences, query_sequence):
             if 0 < len(alignments) < alignment_cap:
                 best_alignment = None                
                 for alignment in alignments:
-                    if alignment.score > best_score:
-                        best_score = alignment.score
+                    if alignment.score >= best_score:
                         best_alignment = alignment
+                        if alignment.score > best_score:
+                            best_score = alignment.score
+                            best_alignments = []
+                    
                         
                 if best_alignment:
                     best_alignments.append(best_alignment)
@@ -108,7 +112,7 @@ if __name__ == "__main__":
     st.text("")
 
     # Give user option to enter query sequence
-    user_sequence = st.text_input("Enter query sequence (or use the default sequence in place): ", "MAFSAEDVLKEYDRRRRMEALLLSLYYPNDRKLLDYKEWSPPRVQVECPKAPVEWNNPPEKGLIVGHFSGIKYKGEKAQASEVDVNKMCCWVSKFKDAMRRYQGIQTCKIPGKVLSDLDAKIKAYNLTVEGVEGFVRYSRVTKQHVAAFLKELRHSKQYENVNLIHYILTDKRVDIQHLEKDLVKDFKALVESAHRMRQGHMINVKYILYQLLKKHGHGPDGPDILTVKTGSKGVLYDDSFRKIYTDLGWKFTP")
+    user_sequence = st.text_input("Enter query sequence (or use the default sequence in place): ", "REHSYWDSWSHKSMWYDDGCACPFGNNLHFHHPWANNYSCLTRIKFVIFM")
     
     # Start alignment
     if st.button("Find Closest Alignment", type="primary"):
