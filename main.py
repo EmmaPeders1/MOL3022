@@ -2,7 +2,6 @@ from Bio import SeqIO
 from Bio import Align
 import streamlit as st
 import re
-import numpy as np
 
 # SVE (Solveig, Vebjørn and Emma) Alignment Tool
 # This tool is designed to find the closest alignment to a query sequence in a fasta file
@@ -100,12 +99,12 @@ if __name__ == "__main__":
     # Spacing 
     st.text("")
 
-    # Give user option to use a subset of sequences if there are more than 50k sequences
+    # Give user option to use a subset of sequences if there are more than sequence_cap sequences
     if seq_amount > sequence_cap:
-        st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With all 500k sequences, the program can a long time to run
-        # Give user option to use their chosen amount of sequences
-        seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 50)
-        sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
+        st.markdown(f":red[WARNING: More than {sequence_cap} sequences! Recommended to use a subset.]") # With a huge amount of sequences, the alignment process will take a long time
+    # Give user option to use their chosen amount of sequences
+    seq_slider = st.slider("Select the wanted amount of sequences: ", 0, seq_amount, sequence_cap, 50)
+    sequences = {k: sequences[k] for k in list(sequences)[:seq_slider]}
     st.markdown("**" + str(seq_slider) + " sequences will be used for alignment.**")    
 
     # Spacing 
@@ -116,12 +115,12 @@ if __name__ == "__main__":
     
     # Start alignment
     if st.button("Find Closest Alignment", type="primary"):
-        resultList = find_closest_alignment(sequences, user_sequence)
-        len_result = len(resultList[0])
-        st.markdown(f"**{len_result} alignment(s) found with score: {str(resultList[1])}**")
+        result_list = find_closest_alignment(sequences, user_sequence)
+        len_result = len(result_list[0])
+        st.markdown(f"**{len_result} alignment(s) found with score: {str(result_list[1])}**")
         
         # Show results
         st.subheader("Best Alignment(s):")
-        for i in range(len(resultList[0])):
+        for i in range(len(result_list[0])):
             st.markdown(f"{sequences[list(sequences.keys())[i]][1]} - {list(sequences.keys())[i]}")
-            st.code(str(resultList[0][i]))
+            st.code(str(result_list[0][i]))
