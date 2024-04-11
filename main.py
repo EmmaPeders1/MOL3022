@@ -64,8 +64,7 @@ def find_closest_alignment(sequences, query_sequence):
         
         try:
             
-            if 0 < len(alignments) < alignment_cap: 
-                print(len(alignments))                
+            if 0 < len(alignments) < alignment_cap:                
                 for alignment in alignments:
                     if alignment.score > best_score:
                         best_score = alignment.score
