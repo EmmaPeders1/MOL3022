@@ -61,15 +61,17 @@ def find_closest_alignment(sequences, query_sequence):
         progress_bar.progress(counter / len(sequences), text=progress_text)
         
         try:
-            if 0 < len(alignments) < alignment_cap: 
+            if 0 < len(alignments) < alignment_cap:
+                current_sequence_alignments = [] 
                 for x in range(len(alignments)):
                     if alignments[x].score >= best_score:
                         if alignments[x].score > best_score:
                             best_score = alignments[x].score
                             best_alignment = []
-                        best_alignment.append(alignments[x])
-                        # Only keep one best alignment from each sequence
-                        break
+                            current_sequence_alignments = [] 
+                        current_sequence_alignments.append(alignments[x])
+            # Only keep one alignment per sequence
+            best_alignment.append(current_sequence_alignments[0])            
         except: # If the length of the alignments is too high, it will cause an overflow error, but that also indicates that the alignment is not useful, so we throw it away and continue
             continue
     
